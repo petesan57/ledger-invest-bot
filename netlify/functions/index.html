@@ -1,1 +1,397 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ledger — learn how investing works</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --paper: #f1f4f1;
+      --card: #ffffff;
+      --ink: #16241f;
+      --ink-soft: #56685f;
+      --pine: #2d5a4a;
+      --pine-deep: #1f4034;
+      --brass: #a8772a;
+      --line: #d9e0db;
+      --user: #e4ebe6;
+      --shadow: 0 1px 2px rgba(22, 36, 31, 0.06), 0 8px 24px rgba(22, 36, 31, 0.05);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Inter", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 780px;
+      margin: 0 auto;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---------- Header ---------- */
+    header {
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--paper);
+    }
+    .wordmark {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .wordmark h1 {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 500;
+      font-size: 30px;
+      letter-spacing: -0.01em;
+      margin: 0;
+      line-height: 1;
+    }
+    .wordmark h1 span {
+      color: var(--pine);
+      border-bottom: 2px solid var(--brass);
+      padding-bottom: 1px;
+    }
+    .tag {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+    header p {
+      margin: 8px 0 0;
+      font-size: 14px;
+      color: var(--ink-soft);
+      max-width: 56ch;
+    }
+
+    /* ---------- Conversation ---------- */
+    .stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 22px 8px;
+      /* faint ledger ruling — the signature texture */
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 31px,
+        rgba(45, 90, 74, 0.05) 32px
+      );
+    }
+
+    .msg { margin-bottom: 20px; display: flex; }
+    .msg.user { justify-content: flex-end; }
+
+    .bubble {
+      max-width: 88%;
+      padding: 14px 17px;
+      border-radius: 16px;
+      font-size: 15.5px;
+      line-height: 1.6;
+    }
+    .msg.bot .bubble {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-top-left-radius: 5px;
+      box-shadow: var(--shadow);
+    }
+    .msg.user .bubble {
+      background: var(--user);
+      color: var(--pine-deep);
+      border-top-right-radius: 5px;
+    }
+
+    .bubble :first-child { margin-top: 0; }
+    .bubble :last-child { margin-bottom: 0; }
+    .bubble p { margin: 0 0 10px; }
+    .bubble strong { font-weight: 600; color: var(--pine-deep); }
+    .bubble ul, .bubble ol { margin: 0 0 10px; padding-left: 20px; }
+    .bubble li { margin-bottom: 5px; }
+    .bubble a { color: var(--brass); }
+
+    .speaker {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--pine);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    /* thinking indicator */
+    .thinking .bubble { display: flex; gap: 5px; align-items: center; }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--pine);
+      opacity: 0.4;
+      animation: pulse 1.2s infinite ease-in-out;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.9; } }
+
+    /* starter chips */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .chip {
+      font-family: inherit;
+      font-size: 13.5px;
+      color: var(--pine-deep);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.05s;
+    }
+    .chip:hover { border-color: var(--pine); }
+    .chip:active { transform: translateY(1px); }
+
+    /* ---------- Composer ---------- */
+    .composer {
+      border-top: 1px solid var(--line);
+      padding: 14px 22px calc(14px + env(safe-area-inset-bottom));
+      background: var(--paper);
+    }
+    .field {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 8px 8px 8px 16px;
+      transition: border-color 0.15s;
+    }
+    .field:focus-within { border-color: var(--pine); }
+    textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      font-size: 15.5px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: transparent;
+      max-height: 140px;
+      padding: 6px 0;
+    }
+    textarea::placeholder { color: #9aa8a1; }
+    .send {
+      flex-shrink: 0;
+      width: 42px; height: 42px;
+      border: none;
+      border-radius: 12px;
+      background: var(--pine);
+      color: #fff;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.15s;
+    }
+    .send:hover { background: var(--pine-deep); }
+    .send:disabled { background: #b6c4bd; cursor: default; }
+    .send svg { width: 19px; height: 19px; }
+
+    .disclaimer {
+      margin: 9px 2px 0;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      text-align: center;
+    }
+
+    :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+    @media (max-width: 520px) {
+      .wordmark h1 { font-size: 26px; }
+      header p { font-size: 13px; }
+      .bubble { max-width: 92%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dot { animation: none; opacity: 0.6; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="wordmark">
+        <h1>Led<span>ger</span></h1>
+        <span class="tag">Educational · not advice</span>
+      </div>
+      <p>A patient guide to how investing and the markets actually work. Ask anything — Ledger explains the idea and teaches you how to weigh it up yourself.</p>
+    </header>
+
+    <main class="stream" id="stream" aria-live="polite"></main>
+
+    <div class="composer">
+      <div class="field">
+        <textarea id="input" rows="1" placeholder="Ask about a concept, a company, or how something works…"></textarea>
+        <button class="send" id="send" aria-label="Send message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+        </button>
+      </div>
+      <p class="disclaimer">Ledger gives general information only, not financial advice. Always do your own research.</p>
+    </div>
+  </div>
+
+  <script>
+    const stream = document.getElementById("stream");
+    const input = document.getElementById("input");
+    const send = document.getElementById("send");
+
+    // Full conversation, sent to the function each turn (it has no memory itself).
+    const conversation = [];
+
+    const STARTERS = [
+      "What's the difference between a share and a fund?",
+      "How does a Stocks and Shares ISA work?",
+      "What does the FTSE 100 look like today?",
+      "Explain a P/E ratio with an example",
+    ];
+
+    // ---- tiny, safe markdown: escape first, then format ----
+    function escapeHtml(s) {
+      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    function renderMarkdown(text) {
+      const lines = escapeHtml(text).split("\n");
+      let html = "";
+      let listType = null;
+      const closeList = () => { if (listType) { html += `</${listType}>`; listType = null; } };
+
+      for (let raw of lines) {
+        let line = raw.trim();
+        if (!line) { closeList(); continue; }
+        line = line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+        line = line.replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+        const ul = line.match(/^[-*]\s+(.*)/);
+        const ol = line.match(/^\d+\.\s+(.*)/);
+        if (ul) {
+          if (listType !== "ul") { closeList(); html += "<ul>"; listType = "ul"; }
+          html += `<li>${ul[1]}</li>`;
+        } else if (ol) {
+          if (listType !== "ol") { closeList(); html += "<ol>"; listType = "ol"; }
+          html += `<li>${ol[1]}</li>`;
+        } else {
+          closeList();
+          html += `<p>${line}</p>`;
+        }
+      }
+      closeList();
+      return html;
+    }
+
+    function addMessage(role, text) {
+      const msg = document.createElement("div");
+      msg.className = `msg ${role}`;
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      if (role === "bot") {
+        bubble.innerHTML = `<div class="speaker">Ledger</div>` + renderMarkdown(text);
+      } else {
+        bubble.textContent = text;
+      }
+      msg.appendChild(bubble);
+      stream.appendChild(msg);
+      stream.scrollTop = stream.scrollHeight;
+      return msg;
+    }
+
+    function showThinking() {
+      const msg = document.createElement("div");
+      msg.className = "msg bot thinking";
+      msg.innerHTML = `<div class="bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+      stream.appendChild(msg);
+      stream.scrollTop = stream.scrollHeight;
+      return msg;
+    }
+
+    function showWelcome() {
+      const msg = addMessage("bot", "Hello — I'm Ledger. I can explain how investing works, walk through what a company's numbers mean, or look up where a share or index is trading right now. I won't tell you what to buy, but I'll show you how to weigh it up. Where shall we start?");
+      const chips = document.createElement("div");
+      chips.className = "chips";
+      STARTERS.forEach((q) => {
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.textContent = q;
+        b.onclick = () => { input.value = q; submit(); };
+        chips.appendChild(b);
+      });
+      msg.querySelector(".bubble").appendChild(chips);
+    }
+
+    async function submit() {
+      const text = input.value.trim();
+      if (!text || send.disabled) return;
+
+      addMessage("user", text);
+      conversation.push({ role: "user", content: text });
+      input.value = "";
+      input.style.height = "auto";
+      send.disabled = true;
+
+      const thinking = showThinking();
+
+      try {
+        const res = await fetch("/.netlify/functions/invest-bot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: conversation }),
+        });
+        const data = await res.json();
+        thinking.remove();
+
+        if (!res.ok) {
+          addMessage("bot", data.error || "Something went wrong. Please try again.");
+        } else {
+          addMessage("bot", data.reply);
+          conversation.push({ role: "assistant", content: data.reply });
+        }
+      } catch (err) {
+        thinking.remove();
+        addMessage("bot", "I couldn't reach the server just then. Please check your connection and try again.");
+      } finally {
+        send.disabled = false;
+        input.focus();
+      }
+    }
+
+    input.addEventListener("input", () => {
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 140) + "px";
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+    });
+    send.addEventListener("click", submit);
+
+    showWelcome();
+    input.focus();
+  </script>
+</body>
+</html>
